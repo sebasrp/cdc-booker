@@ -1,4 +1,7 @@
 selenium
+pytesseract
+opencv-python
+Click
 black
 isort
 -e .
