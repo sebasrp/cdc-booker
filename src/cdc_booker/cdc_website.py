@@ -11,6 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select, WebDriverWait
 
 import captcha
+from cdc_notifier import CDCNotifier
 
 
 class Types:
@@ -27,12 +28,14 @@ class CDCWebsite:
         username=None,
         password=None,
         headless=False,
+        telegram=False,
         home_url="https://www.cdc.com.sg",
         booking_url="https://www.cdc.com.sg:8080",
         is_test=False,
     ):
         self.username = username
         self.password = password
+        self.telegram = telegram
         self.home_url = home_url
         self.booking_url = booking_url
         self.is_test = is_test
@@ -175,4 +178,6 @@ class CDCWebsite:
             "ctl00_ContentPlaceHolder1_lblSessionNo"
         )
         print(f"Available slots: {session_available_span.text}")
+        if self.telegram:
+            CDCNotifier.send_message(f"Available slots: {session_available_span.text}")
         return session_available_span.text
