@@ -7,11 +7,17 @@ from cdc_website import CDCWebsite, Types
 
 
 @click.command()
+@click.option(
+    "--telegram",
+    is_flag=True,
+    help="Enable telegram notifications when slots are available",
+)
 @click.option("-u", "--username", help="Your CDC learner ID")
 @click.option("-p", "--password", "password_", help="Your CDC password")
-def main(username, password_):
+def main(username, password_, telegram):
+
     with CDCWebsite(
-        username=username, password=password_, headless=False
+        username=username, password=password_, headless=False, telegram=telegram
     ) as cdc_website:
         cdc_website.open_home_website()
         cdc_website.login()

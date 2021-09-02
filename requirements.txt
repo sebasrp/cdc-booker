@@ -2,6 +2,8 @@ selenium
 pytesseract
 opencv-python
 Click
+pyaml
+requests
 black
 isort
 -e .
