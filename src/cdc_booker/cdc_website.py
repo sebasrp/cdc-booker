@@ -12,7 +12,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select, WebDriverWait
 
 import captcha
-from cdc_notifier import CDCNotifier
 
 
 class Types:
@@ -29,7 +28,6 @@ class CDCWebsite:
         username=None,
         password=None,
         headless=False,
-        telegram=False,
         configuration=None,
         home_url="https://www.cdc.com.sg",
         booking_url="https://www.cdc.com.sg:8080",
@@ -38,14 +36,9 @@ class CDCWebsite:
         if configuration is None:
             configuration = {}
 
-        self.username = configuration.get("username", username)
-        self.password = configuration.get("password", password)
-        self.telegram = configuration.get("telegram", telegram)
-        self.refresh_rate = configuration.get("refresh_rate", 60)
-        self.notifier = CDCNotifier(
-            token=str(configuration.get("telegram_token", "")),
-            chat_id=str(configuration.get("telegram_chat_id", "")),
-        )
+        self.username = username
+        self.password = password
+
         self.home_url = home_url
         self.booking_url = booking_url
         self.is_test = is_test
@@ -187,11 +180,6 @@ class CDCWebsite:
         session_available_span = self.driver.find_element_by_id(
             "ctl00_ContentPlaceHolder1_lblSessionNo"
         )
-        print(f"Available slots: {session_available_span.text}")
-        if self.telegram:
-            self.notifier.send_message(
-                f"Available slots: {session_available_span.text}"
-            )
         return session_available_span.text
 
     def _get_all_session_dates(self):
@@ -244,8 +232,4 @@ class CDCWebsite:
                                 )
                             }
                         )
-        if self.telegram:
-            self.notifier.send_message(
-                f"Available sessions: {pprint.pprint(available_sessions)}"
-            )
         return available_sessions
