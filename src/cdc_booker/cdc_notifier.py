@@ -2,16 +2,16 @@ import requests
 
 
 class CDCNotifier:
-    TOKEN = "your_telegram_token"
-    CHAT_ID = "your_telegram_chat_id"
+    def __init__(self, token, chat_id):
+        self.token = token
+        self.chat_id = chat_id
 
-    @staticmethod
-    def send_message(message):
+    def send_message(self, message):
         send_text = (
             "https://api.telegram.org/bot"
-            + CDCNotifier.TOKEN
+            + self.token
             + "/sendMessage?chat_id="
-            + CDCNotifier.CHAT_ID
+            + self.chat_id
             + "&parse_mode=Markdown&text="
             + message
         )

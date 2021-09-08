@@ -30,13 +30,22 @@ class CDCWebsite:
         password=None,
         headless=False,
         telegram=False,
+        configuration=None,
         home_url="https://www.cdc.com.sg",
         booking_url="https://www.cdc.com.sg:8080",
         is_test=False,
     ):
-        self.username = username
-        self.password = password
-        self.telegram = telegram
+        if configuration is None:
+            configuration = {}
+
+        self.username = configuration.get("username", username)
+        self.password = configuration.get("password", password)
+        self.telegram = configuration.get("telegram", telegram)
+        self.refresh_rate = configuration.get("refresh_rate", 60)
+        self.notifier = CDCNotifier(
+            token=str(configuration.get("telegram_token", "")),
+            chat_id=str(configuration.get("telegram_chat_id", "")),
+        )
         self.home_url = home_url
         self.booking_url = booking_url
         self.is_test = is_test
@@ -180,7 +189,9 @@ class CDCWebsite:
         )
         print(f"Available slots: {session_available_span.text}")
         if self.telegram:
-            CDCNotifier.send_message(f"Available slots: {session_available_span.text}")
+            self.notifier.send_message(
+                f"Available slots: {session_available_span.text}"
+            )
         return session_available_span.text
 
     def _get_all_session_dates(self):
@@ -234,7 +245,7 @@ class CDCWebsite:
                             }
                         )
         if self.telegram:
-            CDCNotifier.send_message(
+            self.notifier.send_message(
                 f"Available sessions: {pprint.pprint(available_sessions)}"
             )
         return available_sessions
