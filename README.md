@@ -10,10 +10,10 @@ If using the cli arguments is not something you fancy, you can define the config
 A file `config.yml` needs to be created, with the following attributes
 
     # your cdc username
-    username: 00123456
+    username: '00123456'
 
     # your cdc password
-    password: 123456
+    password: '123456'
 
     # how long to wait between refreshes. We will add/remove up to 10% of the time
     # in order to randomnize the refresh rate
@@ -21,8 +21,8 @@ A file `config.yml` needs to be created, with the following attributes
 
     # telegram bot token (required for telegram notifications)
     # see https://core.telegram.org/bots#creating-a-new-bot for instructionscr
-    telegram_token: your_own_bot_token
+    telegram_token:'your_own_bot_token'
 
     # telegram chat id to send updates to
     # see https://stackoverflow.com/a/50736131/91468
-    telegram_chat_id: 1234567890
+    telegram_chat_id: '1234567890'
