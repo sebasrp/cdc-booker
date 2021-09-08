@@ -1,6 +1,7 @@
 import traceback
 import time
 import pprint
+import random
 
 import click
 import yaml
@@ -59,9 +60,13 @@ def main(username, password_, configuration, telegram):
             except Exception:
                 traceback.print_exc()
 
-            # keep in the page
-            print(f"Sleeping for {refresh_rate}s...")
-            time.sleep(refresh_rate)
+            # keep in the page. We add/substract randomly 20% from target refresh rate
+            # in order to try to prevent patttern recognition
+            varianace_seconds = int(refresh_rate * 0.2)
+            random_variance = random.randint(-varianace_seconds, varianace_seconds)
+            next_refresh = refresh_rate + random_variance
+            print(f"Sleeping for {next_refresh}s...")
+            time.sleep(next_refresh)
 
 
 if __name__ == "__main__":
