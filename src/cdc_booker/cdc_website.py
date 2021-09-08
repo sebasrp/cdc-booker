@@ -1,6 +1,7 @@
 import time
 import base64
 import traceback
+import pprint
 
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
@@ -181,3 +182,59 @@ class CDCWebsite:
         if self.telegram:
             CDCNotifier.send_message(f"Available slots: {session_available_span.text}")
         return session_available_span.text
+
+    def _get_all_session_dates(self):
+        available_times = []
+        available_days = []
+        for row in self.driver.find_elements_by_css_selector(
+            "table#ctl00_ContentPlaceHolder1_gvLatestav tr"
+        ):
+            th_cells = row.find_elements_by_tag_name("th")
+            for i, th_cell in enumerate(th_cells):
+                if i < 2:
+                    continue
+
+                available_times.append(str(th_cell.text).split("\n")[1])
+
+            td_cells = row.find_elements_by_tag_name("td")
+            if len(td_cells) > 0:
+                available_days.append(td_cells[0].text)
+        return available_days, available_times
+
+    def get_available_sessions(self):
+        available_sessions = {}
+        available_days, available_times = self._get_all_session_dates()
+
+        # iterate over all "available motorcycle" images to get column and row
+        # to later on get the date & time of that session
+        input_elements = self.driver.find_elements_by_tag_name("input")
+        for input_element in input_elements:
+            # Images1.gif -> available slot
+            input_element_src = input_element.get_attribute("src")
+            if "Images1.gif" in input_element_src or "Images3.gif" in input_element_src:
+                # e.g. ctl00_ContentPlaceHolder1_gvLatestav_ctl02_btnSession4 (02 is row, 4 is column)
+                element_id = str(input_element.get_attribute("id"))
+                # remove 2 to remove th row (for mapping to available_days)
+                row = int(element_id.split("_")[3][-1:]) - 2
+                # remove 1 to remove first column (for mapping to available_times)
+                column = int(element_id[-1]) - 1
+                if "Images1.gif" in input_element_src:
+                    # create or append to list of times (in case there are multiple sessions per day)
+                    # row is date, column is time
+                    if row not in available_sessions.keys():
+                        available_sessions.update(
+                            {available_days[row]: [available_times[column]]}
+                        )
+                    else:
+                        available_sessions.update(
+                            {
+                                available_days[row]: available_sessions[row].append(
+                                    available_times[column]
+                                )
+                            }
+                        )
+        if self.telegram:
+            CDCNotifier.send_message(
+                f"Available sessions: {pprint.pprint(available_sessions)}"
+            )
+        return available_sessions
