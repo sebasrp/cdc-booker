@@ -1,5 +1,6 @@
 import traceback
 import time
+import pprint
 
 import click
 
@@ -27,6 +28,8 @@ def main(username, password_, telegram):
 
             try:
                 print(cdc_website.get_session_available_count())
+                available_sessions = cdc_website.get_available_sessions()
+                print(f"available sessions: {pprint.pprint(available_sessions)}")
             except Exception:
                 traceback.print_exc()
 
