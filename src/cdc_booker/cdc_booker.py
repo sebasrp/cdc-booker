@@ -2,6 +2,7 @@ import traceback
 import time
 import pprint
 import random
+import datetime
 
 import click
 import yaml
@@ -48,7 +49,10 @@ def main(username, password_, configuration, telegram):
             try:
                 session_count = cdc_website.get_session_available_count()
                 available_sessions = cdc_website.get_available_sessions()
-                print(f"Available slots: {session_count}")
+                now = datetime.datetime.now()
+                print(
+                    f"{now.strftime('%Y-%m-%d %H:%M:%S')}: Available slots: {session_count}"
+                )
                 print(f"available sessions: {pprint.pprint(available_sessions)}")
 
                 if telegram and session_count > 0:
