@@ -51,7 +51,7 @@ def main(username, password_, configuration, telegram):
                 print(f"Available slots: {session_count}")
                 print(f"available sessions: {pprint.pprint(available_sessions)}")
 
-                if telegram:
+                if telegram and session_count > 0:
                     notifier.send_message(f"Available slots: {session_count}")
                     notifier.send_message(
                         f"Available sessions: {pprint.pprint(available_sessions)}"
