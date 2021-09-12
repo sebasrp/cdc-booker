@@ -180,7 +180,7 @@ class CDCWebsite:
         session_available_span = self.driver.find_element_by_id(
             "ctl00_ContentPlaceHolder1_lblSessionNo"
         )
-        return session_available_span.text
+        return int(session_available_span.text)
 
     def _get_all_session_dates(self):
         available_times = []
