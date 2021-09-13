@@ -1,6 +1,6 @@
 import traceback
 import time
-import pprint
+import json
 import random
 import datetime
 
@@ -53,12 +53,12 @@ def main(username, password_, configuration, telegram):
                 print(
                     f"{now.strftime('%Y-%m-%d %H:%M:%S')}: Available slots: {session_count}"
                 )
-                print(f"available sessions: {pprint.pprint(available_sessions)}")
+                print(f"available sessions: {json.dumps(available_sessions, indent = 4)}")
 
                 if telegram and session_count > 0:
                     notifier.send_message(f"Available slots: {session_count}")
                     notifier.send_message(
-                        f"Available sessions: {pprint.pprint(available_sessions)}"
+                        f"Available sessions: {json.dumps(available_sessions, indent = 4)}"
                     )
 
             except Exception:

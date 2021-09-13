@@ -1,7 +1,6 @@
 import time
 import base64
 import traceback
-import pprint
 
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
