@@ -8,6 +8,7 @@ import click
 import yaml
 
 from cdc_website import CDCWebsite, Types
+from cdc_android import CDCAndroid
 from cdc_notifier import CDCNotifier
 
 
@@ -40,7 +41,7 @@ def main(username, password_, configuration, scrapper, telegram):
             chat_id=str(config.get("telegram_chat_id", "")),
         )
         notifier.send_message(
-            f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}: Vrooom vroom, starting CDC bob"
+            f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}: Vrooom vroom, starting CDC bot"
         )
 
     if scrapper == "web":
@@ -50,6 +51,38 @@ def main(username, password_, configuration, scrapper, telegram):
             refresh_rate=refresh_rate,
             notifier=notifier,
         )
+    if scrapper == "android":
+        get_android_slots(
+            username=username,
+            password=password,
+            refresh_rate=refresh_rate,
+            notifier=notifier,
+        )
+
+
+def get_android_slots(username, password, refresh_rate, notifier):
+    cdc_android = CDCAndroid(username=username, password=password)
+    cdc_android.login()
+    cdc_android.open_lesson_booking()
+
+    while True:
+        try:
+            cdc_android.open_available_practical_lessons()
+            session_count = cdc_android.get_session_available_count()
+            now = datetime.datetime.now()
+            print(
+                f"{now.strftime('%Y-%m-%d %H:%M:%S')}: Available slots: {session_count}"
+            )
+            if (notifier is not None) and session_count > 0:
+                notifier.send_message(f"Available slots: {session_count}")
+
+            # we go back to the class selection
+            cdc_android.go_back()
+
+        except Exception:
+            traceback.print_exc()
+
+        sleep_randomish(refresh_rate)
 
 
 def get_website_slots(username, password, refresh_rate, notifier):
@@ -83,14 +116,17 @@ def get_website_slots(username, password, refresh_rate, notifier):
 
             except Exception:
                 traceback.print_exc()
+            sleep_randomish(refresh_rate)
 
-            # keep in the page. We add/substract randomly 20% from target refresh rate
-            # in order to try to prevent patttern recognition
-            varianace_seconds = int(refresh_rate * 0.2)
-            random_variance = random.randint(-varianace_seconds, varianace_seconds)
-            next_refresh = refresh_rate + random_variance
-            print(f"Sleeping for {next_refresh}s...")
-            time.sleep(next_refresh)
+
+def sleep_randomish(refresh_rate, variance=0.2):
+    # We add/substract randomly 20% (default) from target refresh rate
+    # in order to try to prevent patttern recognition
+    varianace_seconds = int(refresh_rate * 0.2)
+    random_variance = random.randint(-varianace_seconds, varianace_seconds)
+    next_refresh = refresh_rate + random_variance
+    print(f"Sleeping for {next_refresh}s...")
+    time.sleep(next_refresh)
 
 
 if __name__ == "__main__":

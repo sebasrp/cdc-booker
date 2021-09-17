@@ -1,4 +1,8 @@
+Pillow
+imutils
 selenium
+Appium-Python-Client
+pytest
 pytesseract
 opencv-python
 Click
