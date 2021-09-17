@@ -17,24 +17,42 @@ from cdc_notifier import CDCNotifier
     is_flag=True,
     help="Enable telegram notifications when slots are available",
 )
+@click.option("--scrapper", type=click.Choice(["web", "android"], case_sensitive=False))
 @click.option("-c", "--configuration", help="Your configuration file")
 @click.option("-u", "--username", help="Your CDC learner ID")
 @click.option("-p", "--password", "password_", help="Your CDC password")
-def main(username, password_, configuration, telegram):
+def main(username, password_, configuration, scrapper, telegram):
     config = {}
     if configuration is not None:
         with open(configuration, "r") as f:
             config = yaml.load(f, Loader=yaml.FullLoader)
 
+    if scrapper is None:
+        scrapper = "android"
+
     username = config.get("username", username)
     password = config.get("password", password_)
     telegram = config.get("telegram", telegram)
-    refresh_rate = config.get("refresh_rate", 60)
-    notifier = CDCNotifier(
-        token=str(config.get("telegram_token", "")),
-        chat_id=str(config.get("telegram_chat_id", "")),
-    )
+    refresh_rate = config.get("refresh_rate", 90)
+    if telegram:
+        notifier = CDCNotifier(
+            token=str(config.get("telegram_token", "")),
+            chat_id=str(config.get("telegram_chat_id", "")),
+        )
+        notifier.send_message(
+            f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}: Vrooom vroom, starting CDC bob"
+        )
 
+    if scrapper == "web":
+        get_website_slots(
+            username=username,
+            password=password,
+            refresh_rate=refresh_rate,
+            notifier=notifier,
+        )
+
+
+def get_website_slots(username, password, refresh_rate, notifier):
     with CDCWebsite(
         username=username,
         password=password,
@@ -53,9 +71,11 @@ def main(username, password_, configuration, telegram):
                 print(
                     f"{now.strftime('%Y-%m-%d %H:%M:%S')}: Available slots: {session_count}"
                 )
-                print(f"available sessions: {json.dumps(available_sessions, indent = 4)}")
+                print(
+                    f"available sessions: {json.dumps(available_sessions, indent = 4)}"
+                )
 
-                if telegram and session_count > 0:
+                if (notifier is not None) and session_count > 0:
                     notifier.send_message(f"Available slots: {session_count}")
                     notifier.send_message(
                         f"Available sessions: {json.dumps(available_sessions, indent = 4)}"
