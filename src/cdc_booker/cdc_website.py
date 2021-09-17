@@ -27,14 +27,10 @@ class CDCWebsite:
         username=None,
         password=None,
         headless=False,
-        configuration=None,
         home_url="https://www.cdc.com.sg",
         booking_url="https://www.cdc.com.sg:8080",
         is_test=False,
     ):
-        if configuration is None:
-            configuration = {}
-
         self.username = username
         self.password = password
 
