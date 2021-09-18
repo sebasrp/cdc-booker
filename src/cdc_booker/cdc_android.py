@@ -21,7 +21,7 @@ class CDCAndroid:
         self.password = password
         self.desired_caps = dict(
             platformName="Android",
-            platformVersion="11",
+            platformVersion="12",
             automationName="UiAutomator2",
             deviceName="Android Emulator",
             appPackage=CDCAndroid.PACKAGE,
@@ -104,7 +104,7 @@ class CDCAndroid:
             traceback.print_exc()
 
     def get_session_available_count(self):
-        session_count = 0
+        session_count = -1
         try:
             # select the text view
             WebDriverWait(self.driver, 10).until(
