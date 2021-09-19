@@ -28,6 +28,7 @@ class CDCAndroid:
             appActivity=f"{CDCAndroid.PACKAGE}.{CDCAndroid.MAIN_ACTIVITY}",
             newCommandTimeout=300,
         )
+        self.exception_count = 0
 
         # we connect to the android emulator
         self.driver = webdriver.Remote(
@@ -64,6 +65,7 @@ class CDCAndroid:
             # we click the login button
             self.wait_by_id_and_click("sg.com.comfortdelgro.cdc_prd:id/xbtn_login")
         except Exception:
+            self.exception_count += 1
             traceback.print_exc()
 
     def open_lesson_booking(self):
@@ -72,6 +74,7 @@ class CDCAndroid:
                 "/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.support.v4.view.ViewPager/android.view.ViewGroup/android.widget.ScrollView/android.widget.LinearLayout/android.widget.RelativeLayout[2]/android.support.v7.widget.RecyclerView/android.widget.LinearLayout[2]/android.widget.LinearLayout/android.widget.RelativeLayout",
             )
         except Exception:
+            self.exception_count += 1
             traceback.print_exc()
 
     def open_available_practical_lessons(self):
@@ -101,28 +104,55 @@ class CDCAndroid:
                 "sg.com.comfortdelgro.cdc_prd:id/btn_selectdatetime"
             )
         except Exception:
+            self.exception_count += 1
             traceback.print_exc()
 
     def get_session_available_count(self):
         session_count = -1
+
+        # we wait 2sec before and after taking screenshot
+        time.sleep(2)
+        # we take a screenshot of the sessions
+        self.driver.save_screenshot("cdc_screenshot.png")
+
+        # we wait 2sec before and after taking screenshot
+        time.sleep(2)
+
+        # we first try to see whether we have 0 sessions (most cases)
         try:
+            no_sessions_xpath = "/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.view.ViewGroup/android.widget.RelativeLayout/android.widget.RelativeLayout/android.widget.LinearLayout/android.widget.TextView"
             # select the text view
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, no_sessions_xpath))
+            )
+            sessions_available = self.driver.find_element_by_xpath(no_sessions_xpath)
+            match = re.search(r"([0-9]*) sesssion", sessions_available.text)
+            session_count = int(match.group(1))
+        except Exception:
+            traceback.print_exc()
+
+        if session_count == 0:
+            return session_count
+
+        # then we check whether there are available sessions
+        try:
+            avail_sessions_id = "sg.com.comfortdelgro.cdc_prd:id/header_name"
+            # find if there are sessions
             WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located(
                     (
-                        By.XPATH,
-                        "/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.view.ViewGroup/android.widget.RelativeLayout/android.widget.RelativeLayout/android.widget.LinearLayout/android.widget.TextView",
+                        By.ID,
+                        avail_sessions_id,
                     )
                 )
             )
-            sessions_available = self.driver.find_element_by_xpath(
-                "/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.view.ViewGroup/android.widget.RelativeLayout/android.widget.RelativeLayout/android.widget.LinearLayout/android.widget.TextView"
-            )
+            sessions_available = self.driver.find_element_by_id(avail_sessions_id)
+            print(f"sessions text: {sessions_available.text}")
             match = re.search(r"([0-9]*) sesssion", sessions_available.text)
             session_count = int(match.group(1))
-            print(f"sessions: {session_count}")
         except Exception:
             traceback.print_exc()
+
         return session_count
 
     def go_back(self):
@@ -135,6 +165,7 @@ class CDCAndroid:
             )
             self.driver.find_element_by_xpath(xpath).click()
         except Exception:
+            self.exception_count += 1
             traceback.print_exc()
 
     def wait_by_id_and_click(self, id, timeout=20):
@@ -144,4 +175,5 @@ class CDCAndroid:
             )
             self.driver.find_element_by_id(id).click()
         except Exception:
+            self.exception_count += 1
             traceback.print_exc()

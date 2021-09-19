@@ -10,8 +10,6 @@ Having troubles booking your lessons at the CDC center? This tool let's you know
   * sudo npm install -g appium
   * sudo npm install wd
   * sudo npm install -g appium-doctor
-
-
 * Android Studio (for an android emulator)
    * archlinux: yay -S android-studio-beta
 

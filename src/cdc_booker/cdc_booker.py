@@ -61,9 +61,7 @@ def main(username, password_, configuration, scrapper, telegram):
 
 
 def get_android_slots(username, password, refresh_rate, notifier):
-    cdc_android = CDCAndroid(username=username, password=password)
-    cdc_android.login()
-    cdc_android.open_lesson_booking()
+    cdc_android = initialize_android(username=username, password=password)
 
     while True:
         try:
@@ -73,7 +71,7 @@ def get_android_slots(username, password, refresh_rate, notifier):
             print(
                 f"{now.strftime('%Y-%m-%d %H:%M:%S')}: Available slots: {session_count}"
             )
-            if (notifier is not None) and session_count > 0:
+            if notifier is not None and session_count != 0:
                 notifier.send_message(f"Available slots: {session_count}")
 
             # we go back to the class selection
@@ -82,7 +80,23 @@ def get_android_slots(username, password, refresh_rate, notifier):
         except Exception:
             traceback.print_exc()
 
+        # in case there are too many exceptions, we restart the emulator session
+        if cdc_android.exception_count > 5:
+            if notifier is not None:
+                notifier.send_message(
+                    f"Too many emulator exceptions ({cdc_android.exception_count}) - restarting"
+                )
+            cdc_android = initialize_android(username=username, password=password)
+            continue
+
         sleep_randomish(refresh_rate)
+
+
+def initialize_android(username, password):
+    cdc_android = CDCAndroid(username=username, password=password)
+    cdc_android.login()
+    cdc_android.open_lesson_booking()
+    return cdc_android
 
 
 def get_website_slots(username, password, refresh_rate, notifier):
