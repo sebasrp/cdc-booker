@@ -81,6 +81,7 @@ def get_android_slots(username, password, circuit_revision, refresh_rate, notifi
             )
             if notifier is not None and session_count != 0:
                 notifier.send_message(f"Available slots: {session_count}")
+                notifier.send_photo("cdc_screenshot.png")
 
             # we go back to the class selection
             cdc_android.go_back()
