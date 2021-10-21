@@ -125,12 +125,12 @@ class CDCAndroid:
 
         # we first try to see whether we have 0 sessions (most cases)
         try:
-            no_sessions_id = "sg.com.comfortdelgro.cdc_prd:id/header_name"
+            no_sessions_xpath = "/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.view.ViewGroup/android.widget.RelativeLayout/android.widget.RelativeLayout/android.widget.LinearLayout/android.widget.TextView"
             # select the text view
             WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.ID, no_sessions_id))
+                EC.presence_of_element_located((By.XPATH, no_sessions_xpath))
             )
-            sessions_available = self.driver.find_element_by_id(no_sessions_id)
+            sessions_available = self.driver.find_element_by_xpath(no_sessions_xpath)
             match = re.search(r"([0-9]*) session", sessions_available.text)
             session_count = int(match.group(1))
         except Exception:
@@ -152,8 +152,7 @@ class CDCAndroid:
                 )
             )
             sessions_available = self.driver.find_element_by_id(avail_sessions_id)
-            print(f"sessions text: {sessions_available.text}")
-            match = re.search(r"([0-9]*) sesssion", sessions_available.text)
+            match = re.search(r"([0-9]*) session", sessions_available.text)
             session_count = int(match.group(1))
         except Exception:
             traceback.print_exc()
