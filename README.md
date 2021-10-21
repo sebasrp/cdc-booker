@@ -27,6 +27,9 @@ A file `config.yml` needs to be created, with the following attributes
     # in order to randomnize the refresh rate
     refresh_rate: 60
 
+    # Set to true if you want to check circuit revision instead of class
+    circuit_revision = true
+
     # telegram bot token (required for telegram notifications)
     # see https://core.telegram.org/bots#creating-a-new-bot for instructionscr
     telegram_token:'your_own_bot_token'

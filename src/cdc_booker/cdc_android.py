@@ -77,7 +77,7 @@ class CDCAndroid:
             self.exception_count += 1
             traceback.print_exc()
 
-    def open_available_practical_lessons(self):
+    def open_available_practical_lessons(self, circuit_revision=False):
         try:
             # we wait till the lesson practical lesson dropdown is there
             self.wait_by_xpath_and_click(
@@ -94,10 +94,15 @@ class CDCAndroid:
                 "/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.ScrollView/android.widget.RelativeLayout/android.widget.RelativeLayout[3]/android.widget.Spinner/android.widget.RelativeLayout/android.widget.RelativeLayout"
             )
 
-            # we select the first class
-            self.wait_by_xpath_and_click(
-                "//android.widget.TextView[contains(@text, 'Class')]"
-            )
+            # if override for circuit revision, do that. otherwise, we select the first class
+            if circuit_revision:
+                self.wait_by_xpath_and_click(
+                    "//android.widget.TextView[contains(@text, 'REVISION')]"
+                )
+            else:
+                self.wait_by_xpath_and_click(
+                    "//android.widget.TextView[contains(@text, 'Class')]"
+                )
 
             # and we finally look for the slots
             self.wait_by_id_and_click(
@@ -120,13 +125,13 @@ class CDCAndroid:
 
         # we first try to see whether we have 0 sessions (most cases)
         try:
-            no_sessions_xpath = "/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.view.ViewGroup/android.widget.RelativeLayout/android.widget.RelativeLayout/android.widget.LinearLayout/android.widget.TextView"
+            no_sessions_id = "sg.com.comfortdelgro.cdc_prd:id/header_name"
             # select the text view
             WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, no_sessions_xpath))
+                EC.presence_of_element_located((By.ID, no_sessions_id))
             )
-            sessions_available = self.driver.find_element_by_xpath(no_sessions_xpath)
-            match = re.search(r"([0-9]*) sesssion", sessions_available.text)
+            sessions_available = self.driver.find_element_by_id(no_sessions_id)
+            match = re.search(r"([0-9]*) session", sessions_available.text)
             session_count = int(match.group(1))
         except Exception:
             traceback.print_exc()

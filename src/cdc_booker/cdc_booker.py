@@ -18,11 +18,16 @@ from cdc_notifier import CDCNotifier
     is_flag=True,
     help="Enable telegram notifications when slots are available",
 )
+@click.option(
+    "--circuit_revision",
+    is_flag=True,
+    help="Enable telegram notifications when slots are available",
+)
 @click.option("--scrapper", type=click.Choice(["web", "android"], case_sensitive=False))
 @click.option("-c", "--configuration", help="Your configuration file")
 @click.option("-u", "--username", help="Your CDC learner ID")
 @click.option("-p", "--password", "password_", help="Your CDC password")
-def main(username, password_, configuration, scrapper, telegram):
+def main(username, password_, configuration, scrapper, circuit_revision, telegram):
     config = {}
     if configuration is not None:
         with open(configuration, "r") as f:
@@ -33,6 +38,7 @@ def main(username, password_, configuration, scrapper, telegram):
 
     username = config.get("username", username)
     password = config.get("password", password_)
+    circuit_revision = config.get("circuit_revision", circuit_revision)
     telegram = config.get("telegram", telegram)
     refresh_rate = config.get("refresh_rate", 90)
     if telegram:
@@ -48,6 +54,7 @@ def main(username, password_, configuration, scrapper, telegram):
         get_website_slots(
             username=username,
             password=password,
+            circuit_revision=circuit_revision,
             refresh_rate=refresh_rate,
             notifier=notifier,
         )
@@ -55,17 +62,18 @@ def main(username, password_, configuration, scrapper, telegram):
         get_android_slots(
             username=username,
             password=password,
+            circuit_revision=circuit_revision,
             refresh_rate=refresh_rate,
             notifier=notifier,
         )
 
 
-def get_android_slots(username, password, refresh_rate, notifier):
+def get_android_slots(username, password, circuit_revision, refresh_rate, notifier):
     cdc_android = initialize_android(username=username, password=password)
 
     while True:
         try:
-            cdc_android.open_available_practical_lessons()
+            cdc_android.open_available_practical_lessons(circuit_revision)
             session_count = cdc_android.get_session_available_count()
             now = datetime.datetime.now()
             print(
@@ -99,7 +107,7 @@ def initialize_android(username, password):
     return cdc_android
 
 
-def get_website_slots(username, password, refresh_rate, notifier):
+def get_website_slots(username, password, circuit_revision, refresh_rate, notifier):
     with CDCWebsite(
         username=username,
         password=password,
