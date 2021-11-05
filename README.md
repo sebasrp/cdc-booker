@@ -28,7 +28,10 @@ A file `config.yml` needs to be created, with the following attributes
     refresh_rate: 60
 
     # Set to true if you want to check circuit revision instead of class
-    circuit_revision = true
+    circuit_revision: true
+
+    # Set to true if you want to check road revision instead of practical class
+    road_revision: true
 
     # telegram bot token (required for telegram notifications)
     # see https://core.telegram.org/bots#creating-a-new-bot for instructionscr

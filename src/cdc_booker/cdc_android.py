@@ -77,7 +77,7 @@ class CDCAndroid:
             self.exception_count += 1
             traceback.print_exc()
 
-    def open_available_practical_lessons(self, circuit_revision=False):
+    def open_available_practical_lessons(self, circuit_revision=False, road_revision=False):
         try:
             # we wait till the lesson practical lesson dropdown is there
             self.wait_by_xpath_and_click(
@@ -97,7 +97,11 @@ class CDCAndroid:
             # if override for circuit revision, do that. otherwise, we select the first class
             if circuit_revision:
                 self.wait_by_xpath_and_click(
-                    "//android.widget.TextView[contains(@text, 'REVISION')]"
+                    "//android.widget.TextView[contains(@text, 'CIRCUIT REVISION')]"
+                )
+            elif road_revision:
+                self.wait_by_xpath_and_click(
+                    "//android.widget.TextView[contains(@text, 'ROAD REVISION')]"
                 )
             else:
                 self.wait_by_xpath_and_click(
