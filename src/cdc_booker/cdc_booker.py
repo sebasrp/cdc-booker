@@ -79,10 +79,19 @@ def get_android_slots(username, password, circuit_revision, refresh_rate, notifi
             print(
                 f"{now.strftime('%Y-%m-%d %H:%M:%S')}: Available slots: {session_count}"
             )
-            if notifier is not None and session_count != 0:
-                notifier.send_message(f"Available slots: {session_count}")
+            if notifier is not None:
+                retries_count = 0
+                print(f"session_count: {session_count}")
                 if session_count > 0:
+                    notifier.send_message(f"Available slots: {session_count}")
                     notifier.send_photo("cdc_screenshot.png")
+                    retries_count = 0
+                else:
+                    print(f"retries: {retries_count}")
+                    retries_count += 1
+                    if retries_count > 10:
+                        notifier.send_message(f"I'm still alive! ({retries_count} since last message)")
+                        retries_count = 0
 
             # we go back to the class selection
             cdc_android.go_back()
