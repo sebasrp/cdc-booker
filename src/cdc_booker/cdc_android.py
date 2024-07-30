@@ -3,6 +3,8 @@ import traceback
 import re
 
 from appium import webdriver
+from appium.options.android import UiAutomator2Options
+from appium.webdriver.common.appiumby import AppiumBy
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -21,7 +23,6 @@ class CDCAndroid:
         self.password = password
         self.desired_caps = dict(
             platformName="Android",
-            platformVersion="12",
             automationName="UiAutomator2",
             deviceName="Android Emulator",
             appPackage=CDCAndroid.PACKAGE,
@@ -32,7 +33,7 @@ class CDCAndroid:
 
         # we connect to the android emulator
         self.driver = webdriver.Remote(
-            "http://localhost:4723/wd/hub", self.desired_caps
+            "http://localhost:4723", options=UiAutomator2Options().load_capabilities(self.desired_caps)
         )
 
         # Waiting until the close button shows
@@ -42,10 +43,11 @@ class CDCAndroid:
         try:
             # we wait till the login button is available on homescreen
             self.wait_by_xpath_and_click(
-                '//android.widget.FrameLayout[@content-desc="Login"]/android.widget.ImageView'
+                '//android.widget.FrameLayout[@content-desc="Login"]'
             )
 
             # Waiting until the login fields appear
+
             WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located(
                     (By.ID, "sg.com.comfortdelgro.cdc_prd:id/xet_signin_email")
@@ -53,12 +55,12 @@ class CDCAndroid:
             )
 
             # we enter the learner id
-            self.driver.find_element_by_id(
+            self.driver.find_element(by=AppiumBy.ID, value=
                 "sg.com.comfortdelgro.cdc_prd:id/xet_signin_email"
             ).send_keys(self.username)
 
             # we enter the password
-            self.driver.find_element_by_id(
+            self.driver.find_element(by=AppiumBy.ID, value=
                 "sg.com.comfortdelgro.cdc_prd:id/xet_signin_password"
             ).send_keys(self.password)
 
@@ -71,7 +73,7 @@ class CDCAndroid:
     def open_lesson_booking(self):
         try:
             self.wait_by_xpath_and_click(
-                "/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.support.v4.view.ViewPager/android.view.ViewGroup/android.widget.ScrollView/android.widget.LinearLayout/android.widget.RelativeLayout[2]/android.support.v7.widget.RecyclerView/android.widget.LinearLayout[2]/android.widget.LinearLayout/android.widget.RelativeLayout",
+                """(//android.widget.ImageView[@resource-id="sg.com.comfortdelgro.cdc_prd:id/cat_img"])[2]""",
             )
         except Exception:
             self.exception_count += 1
@@ -86,13 +88,12 @@ class CDCAndroid:
 
             # we then select the practical lesson
             self.wait_by_xpath_and_click(
-                "//android.widget.TextView[contains(@text, 'Practical Lesson')]"
+                """//android.widget.TextView[@resource-id="sg.com.comfortdelgro.cdc_prd:id/text" and @text="Practical Lesson"]"""
             )
 
             # we open the course dropdown
             self.wait_by_xpath_and_click(
-                "/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.ScrollView/android.widget.RelativeLayout/android.widget.RelativeLayout[3]/android.widget.Spinner/android.widget.RelativeLayout/android.widget.RelativeLayout"
-            )
+                """//android.widget.Spinner[@resource-id="sg.com.comfortdelgro.cdc_prd:id/select_course_spinner"]""")
 
             # if override for circuit revision, do that. otherwise, we select the first class
             if circuit_revision:
@@ -155,7 +156,7 @@ class CDCAndroid:
                     )
                 )
             )
-            sessions_available = self.driver.find_element_by_id(avail_sessions_id)
+            sessions_available = self.driver.find_element(by=AppiumBy.ID, value=avail_sessions_id)
             match = re.search(r"([0-9]*) session", sessions_available.text)
             session_count = int(match.group(1))
         except Exception:
@@ -171,7 +172,7 @@ class CDCAndroid:
             WebDriverWait(self.driver, timeout).until(
                 EC.presence_of_element_located((By.XPATH, xpath))
             )
-            self.driver.find_element_by_xpath(xpath).click()
+            self.driver.find_element(by=AppiumBy.XPATH, value=xpath).click()
         except Exception:
             self.exception_count += 1
             traceback.print_exc()
@@ -181,7 +182,7 @@ class CDCAndroid:
             WebDriverWait(self.driver, timeout).until(
                 EC.presence_of_element_located((By.ID, id))
             )
-            self.driver.find_element_by_id(id).click()
+            self.driver.find_element(by=AppiumBy.ID, value=id).click()
         except Exception:
             self.exception_count += 1
             traceback.print_exc()
