@@ -1,3 +1,5 @@
+import base64
+import os
 import time
 import traceback
 import re
@@ -42,26 +44,22 @@ class CDCAndroid:
     def login(self):
         try:
             # we wait till the login button is available on homescreen
-            self.wait_by_xpath_and_click(
-                '//android.widget.FrameLayout[@content-desc="Login"]'
-            )
+            self.wait_by_xpath_and_click('//android.widget.FrameLayout[@content-desc="Login"]')
 
             # Waiting until the login fields appear
 
             WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located(
-                    (By.ID, "sg.com.comfortdelgro.cdc_prd:id/xet_signin_email")
-                )
+                EC.presence_of_element_located((By.ID, "sg.com.comfortdelgro.cdc_prd:id/xet_signin_email"))
             )
 
             # we enter the learner id
-            self.driver.find_element(by=AppiumBy.ID, value=
-                "sg.com.comfortdelgro.cdc_prd:id/xet_signin_email"
+            self.driver.find_element(
+                by=AppiumBy.ID, value="sg.com.comfortdelgro.cdc_prd:id/xet_signin_email"
             ).send_keys(self.username)
 
             # we enter the password
-            self.driver.find_element(by=AppiumBy.ID, value=
-                "sg.com.comfortdelgro.cdc_prd:id/xet_signin_password"
+            self.driver.find_element(
+                by=AppiumBy.ID, value="sg.com.comfortdelgro.cdc_prd:id/xet_signin_password"
             ).send_keys(self.password)
 
             # we click the login button
@@ -93,32 +91,25 @@ class CDCAndroid:
 
             # we open the course dropdown
             self.wait_by_xpath_and_click(
-                """//android.widget.Spinner[@resource-id="sg.com.comfortdelgro.cdc_prd:id/select_course_spinner"]""")
+                """//android.widget.Spinner[@resource-id="sg.com.comfortdelgro.cdc_prd:id/select_course_spinner"]"""
+            )
 
             # if override for circuit revision, do that. otherwise, we select the first class
             if circuit_revision:
-                self.wait_by_xpath_and_click(
-                    "//android.widget.TextView[contains(@text, 'CIRCUIT REVISION')]"
-                )
+                self.wait_by_xpath_and_click("//android.widget.TextView[contains(@text, 'CIRCUIT REVISION')]")
             elif road_revision:
-                self.wait_by_xpath_and_click(
-                    "//android.widget.TextView[contains(@text, 'ROAD REVISION')]"
-                )
+                self.wait_by_xpath_and_click("//android.widget.TextView[contains(@text, 'ROAD REVISION')]")
             else:
-                self.wait_by_xpath_and_click(
-                    "//android.widget.TextView[contains(@text, 'Class')]"
-                )
+                self.wait_by_xpath_and_click("//android.widget.TextView[contains(@text, 'Class')]")
 
             # and we finally look for the slots
-            self.wait_by_id_and_click(
-                "sg.com.comfortdelgro.cdc_prd:id/btn_selectdatetime"
-            )
+            self.wait_by_id_and_click("sg.com.comfortdelgro.cdc_prd:id/btn_selectdatetime")
         except Exception:
             self.exception_count += 1
             traceback.print_exc()
 
     def get_session_available_count(self):
-        session_count = -1
+        session_count = 0
 
         # we wait 2sec before and after taking screenshot
         time.sleep(2)
@@ -132,9 +123,7 @@ class CDCAndroid:
         try:
             no_sessions_xpath = "/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.view.ViewGroup/android.widget.RelativeLayout/android.widget.RelativeLayout/android.widget.LinearLayout/android.widget.TextView"
             # select the text view
-            WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, no_sessions_xpath))
-            )
+            WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, no_sessions_xpath)))
             sessions_available = self.driver.find_element_by_xpath(no_sessions_xpath)
             match = re.search(r"([0-9]*) session", sessions_available.text)
             session_count = int(match.group(1))
@@ -169,9 +158,7 @@ class CDCAndroid:
 
     def wait_by_xpath_and_click(self, xpath, timeout=20):
         try:
-            WebDriverWait(self.driver, timeout).until(
-                EC.presence_of_element_located((By.XPATH, xpath))
-            )
+            WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.XPATH, xpath)))
             self.driver.find_element(by=AppiumBy.XPATH, value=xpath).click()
         except Exception:
             self.exception_count += 1
@@ -179,9 +166,7 @@ class CDCAndroid:
 
     def wait_by_id_and_click(self, id, timeout=20):
         try:
-            WebDriverWait(self.driver, timeout).until(
-                EC.presence_of_element_located((By.ID, id))
-            )
+            WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.ID, id)))
             self.driver.find_element(by=AppiumBy.ID, value=id).click()
         except Exception:
             self.exception_count += 1

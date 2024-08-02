@@ -36,7 +36,7 @@ def main(username, password_, configuration, scrapper, circuit_revision, road_re
     config = {}
     if configuration is not None:
         with open(configuration, "r") as f:
-            config = yaml.load(f, Loader=yaml.FullLoader)
+            config = yaml.safe_load(f)
 
     if scrapper is None:
         scrapper = "android"
@@ -47,6 +47,7 @@ def main(username, password_, configuration, scrapper, circuit_revision, road_re
     road_revision = config.get("road_revision", road_revision)
     telegram = config.get("telegram", telegram)
     refresh_rate = config.get("refresh_rate", 90)
+    notifier = None
     if telegram:
         notifier = CDCNotifier(
             token=str(config.get("telegram_token", "")),
@@ -84,9 +85,7 @@ def get_android_slots(username, password, circuit_revision, road_revision, refre
             cdc_android.open_available_practical_lessons(circuit_revision=circuit_revision, road_revision=road_revision)
             session_count = cdc_android.get_session_available_count()
             now = datetime.datetime.now()
-            print(
-                f"{now.strftime('%Y-%m-%d %H:%M:%S')}: Available slots: {session_count}"
-            )
+            print(f"{now.strftime('%Y-%m-%d %H:%M:%S')}: Available slots: {session_count}")
             if notifier is not None:
                 retries_count = 0
                 print(f"session_count: {session_count}")
@@ -110,9 +109,7 @@ def get_android_slots(username, password, circuit_revision, road_revision, refre
         # in case there are too many exceptions, we restart the emulator session
         if cdc_android.exception_count > 5:
             if notifier is not None:
-                notifier.send_message(
-                    f"Too many emulator exceptions ({cdc_android.exception_count}) - restarting"
-                )
+                notifier.send_message(f"Too many emulator exceptions ({cdc_android.exception_count}) - restarting")
             cdc_android = initialize_android(username=username, password=password)
             continue
 
@@ -142,18 +139,12 @@ def get_website_slots(username, password, circuit_revision, road_revision, refre
                 session_count = cdc_website.get_session_available_count()
                 available_sessions = cdc_website.get_available_sessions()
                 now = datetime.datetime.now()
-                print(
-                    f"{now.strftime('%Y-%m-%d %H:%M:%S')}: Available slots: {session_count}"
-                )
-                print(
-                    f"available sessions: {json.dumps(available_sessions, indent = 4)}"
-                )
+                print(f"{now.strftime('%Y-%m-%d %H:%M:%S')}: Available slots: {session_count}")
+                print(f"available sessions: {json.dumps(available_sessions, indent = 4)}")
 
                 if (notifier is not None) and session_count > 0:
                     notifier.send_message(f"Available slots: {session_count}")
-                    notifier.send_message(
-                        f"Available sessions: {json.dumps(available_sessions, indent = 4)}"
-                    )
+                    notifier.send_message(f"Available sessions: {json.dumps(available_sessions, indent = 4)}")
 
             except Exception:
                 traceback.print_exc()
