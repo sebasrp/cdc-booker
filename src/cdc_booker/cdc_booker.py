@@ -39,7 +39,7 @@ def main(username, password_, configuration, scrapper, circuit_revision, road_re
             config = yaml.safe_load(f)
 
     if scrapper is None:
-        scrapper = "android"
+        scrapper = "web"
 
     username = config.get("username", username)
     password = config.get("password", password_)

@@ -9,7 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select, WebDriverWait
-
+import undetected_chromedriver as uc
 import captcha
 
 
@@ -45,6 +45,12 @@ class CDCWebsite:
         browser_options.add_argument("--no-proxy-server")
 
         self.driver = webdriver.Chrome(options=browser_options)
+
+        options = uc.ChromeOptions()
+        options.headless = False  # Set headless to False to run in non-headless mode
+        driver = uc.Chrome(use_subprocess=True, options=options)
+        self.driver = driver
+
         self.driver.set_window_size(1600, 768)
 
     def __enter__(self):
@@ -57,25 +63,22 @@ class CDCWebsite:
         self.driver.get(f"{self.booking_url}/{path}{'.html' if self.is_test else ''}")
 
     def open_home_website(self):
-        self.driver.get(self.home_url)
-        assert "ComfortDelGro" in self.driver.title
+        self.driver.get(f"{self.home_url}/#login")
 
     def login(self):
-        time.sleep(5)
-        login_btn = self.driver.find_element_by_xpath('//*[@id="top-menu"]/ul/li[10]/a')
-        login_btn.click()
+        time.sleep(20)
 
         if self.username not in [None, ""]:
-            learner_id_input: WebElement = self.driver.find_element_by_name("userId")
+            learner_id_input = self.driver.find_element(by=By.XPATH, value="//*[@id='userId_4']")
             learner_id_input.send_keys(self.username)
 
         if self.password not in [None, ""]:
-            password_input = self.driver.find_element_by_name("password")
+            password_input = self.driver.find_element(by=By.XPATH, value="//*[@id='password_4']")
             password_input.send_keys(self.password)
 
         # wait for user to solve recaptcha
         try:
-            while self.driver.find_element_by_name("userId"):
+            while self.driver.find_element(by=By.XPATH, value="//*[@id='userId_4']"):
                 time.sleep(5)
                 print("Waiting for recaptcha")
         except NoSuchElementException:
@@ -91,15 +94,8 @@ class CDCWebsite:
     def open_practical_lessons_booking(self, type=Types.PRACTICAL):
         self._open_website("NewPortal/Booking/BookingPL.aspx")
 
-        while (
-            self.driver.find_element_by_id(
-                "ctl00_ContentPlaceHolder1_lblSessionNo"
-            ).text
-            == ""
-        ):
-            select = Select(
-                self.driver.find_element_by_id("ctl00_ContentPlaceHolder1_ddlCourse")
-            )
+        while self.driver.find_element_by_id("ctl00_ContentPlaceHolder1_lblSessionNo").text == "":
+            select = Select(self.driver.find_element_by_id("ctl00_ContentPlaceHolder1_ddlCourse"))
 
             # sometimes there are multiple options (like "CLASS 2B CIRCUIT REVISION" and "Class 2B Lesson 5")
             # in that case, choose the "Class 2B Lesson *" as this is much more relevant to be notified for
@@ -128,9 +124,7 @@ class CDCWebsite:
             print("entering while loop for captch handler")
             # we need to handle the captcha
             try:
-                captcha_img = self.driver.find_element_by_id(
-                    "ctl00_ContentPlaceHolder1_CaptchaImg"
-                )
+                captcha_img = self.driver.find_element_by_id("ctl00_ContentPlaceHolder1_CaptchaImg")
 
                 captcha_base64_string = captcha_img.get_attribute("src")
                 with open("captcha_tmp.png", "wb") as fh:
@@ -144,45 +138,33 @@ class CDCWebsite:
 
                 # wait for the popup to appear
                 WebDriverWait(self.driver, 5).until(
-                    EC.element_to_be_clickable(
-                        (By.ID, "ctl00_ContentPlaceHolder1_txtVerificationCode")
-                    )
+                    EC.element_to_be_clickable((By.ID, "ctl00_ContentPlaceHolder1_txtVerificationCode"))
                 )
                 captcha_input.send_keys(captcha_text)
 
                 # click in submit
-                self.driver.find_element_by_name(
-                    "ctl00$ContentPlaceHolder1$Button1"
-                ).click()
+                self.driver.find_element_by_name("ctl00$ContentPlaceHolder1$Button1").click()
 
                 # wait for the popup to appear
                 WebDriverWait(self.driver, 5).until(
-                    EC.element_to_be_clickable(
-                        (By.ID, "ctl00_ContentPlaceHolder1_txtVerificationCode")
-                    )
+                    EC.element_to_be_clickable((By.ID, "ctl00_ContentPlaceHolder1_txtVerificationCode"))
                 )
             except Exception:
                 traceback.print_exc()
 
         WebDriverWait(self.driver, 10).until(
-            EC.element_to_be_clickable(
-                (By.ID, "ctl00_ContentPlaceHolder1_lblSessionNo")
-            )
+            EC.element_to_be_clickable((By.ID, "ctl00_ContentPlaceHolder1_lblSessionNo"))
         )
         return True
 
     def get_session_available_count(self):
-        session_available_span = self.driver.find_element_by_id(
-            "ctl00_ContentPlaceHolder1_lblSessionNo"
-        )
+        session_available_span = self.driver.find_element_by_id("ctl00_ContentPlaceHolder1_lblSessionNo")
         return int(session_available_span.text)
 
     def _get_all_session_dates(self):
         available_times = []
         available_days = []
-        for row in self.driver.find_elements_by_css_selector(
-            "table#ctl00_ContentPlaceHolder1_gvLatestav tr"
-        ):
+        for row in self.driver.find_elements_by_css_selector("table#ctl00_ContentPlaceHolder1_gvLatestav tr"):
             th_cells = row.find_elements_by_tag_name("th")
             for i, th_cell in enumerate(th_cells):
                 if i < 2:
@@ -216,15 +198,12 @@ class CDCWebsite:
                     # create or append to list of times (in case there are multiple sessions per day)
                     # row is date, column is time
                     if row not in available_sessions.keys():
-                        available_sessions.update(
-                            {available_days[row]: [available_times[column]]}
-                        )
+                        available_sessions.update({available_days[row]: [available_times[column]]})
                     else:
                         available_sessions.update(
-                            {
-                                available_days[row]: available_sessions[row].append(
-                                    available_times[column]
-                                )
-                            }
+                            {available_days[row]: available_sessions[row].append(available_times[column])}
                         )
         return available_sessions
+
+    def wait_clickable(self, locator_type: str, locator: str, timeout: int = 20):
+        return WebDriverWait(self.driver, timeout).until(EC.element_to_be_clickable((locator_type, locator)))

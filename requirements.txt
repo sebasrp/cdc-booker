@@ -10,4 +10,5 @@ pyaml
 requests
 black
 isort
+undetected-chromedriver
 -e .
